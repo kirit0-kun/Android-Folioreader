@@ -250,6 +250,11 @@ public class FolioReader {
         return singleton;
     }
 
+    public FolioReader setOnBookmarkListener(OnBookmarkListener onBookmarkListener) {
+        this.onBookmarkListener = onBookmarkListener;
+        return singleton;
+    }
+
     public FolioReader setReadLocatorListener(ReadLocatorListener readLocatorListener) {
         this.readLocatorListener = readLocatorListener;
         return singleton;

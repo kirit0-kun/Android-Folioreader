@@ -32,6 +32,7 @@ import com.folioreader.model.locators.ReadLocator;
 import com.folioreader.ui.base.OnSaveBookmark;
 import com.folioreader.ui.base.OnSaveHighlight;
 import com.folioreader.util.AppUtil;
+import com.folioreader.util.OnBookmarkListener;
 import com.folioreader.util.OnHighlightListener;
 import com.folioreader.util.ReadLocatorListener;
 
@@ -43,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity
-        implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener {
+        implements OnHighlightListener, ReadLocatorListener, OnBookmarkListener, FolioReader.OnClosedListener {
 
     private static final String LOG_TAG = HomeActivity.class.getSimpleName();
     private FolioReader folioReader;
@@ -55,10 +56,12 @@ public class HomeActivity extends AppCompatActivity
 
         folioReader = FolioReader.get()
                 .setOnHighlightListener(this)
+                .setOnBookmarkListener(this)
                 .setReadLocatorListener(this)
                 .setOnClosedListener(this);
 
         getHighlightsAndSave();
+        getBookmarksAndSave();
 
         findViewById(R.id.btn_raw).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -204,6 +207,13 @@ public class HomeActivity extends AppCompatActivity
     public void onHighlight(HighLight highlight, HighLight.HighLightAction type) {
         Toast.makeText(this,
                 "highlight id = " + highlight.getUUID() + " type = " + type,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onBookmark(Bookmark bookmark, Bookmark.BookmarkAction type) {
+        Toast.makeText(this,
+                "bookmark id = " + bookmark.getUUID() + " type = " + type,
                 Toast.LENGTH_SHORT).show();
     }
 
