@@ -1,7 +1,6 @@
 package com.folioreader.ui.adapter;
 
 import android.content.Context;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,32 +11,32 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.folioreader.Config;
 import com.folioreader.R;
-import com.folioreader.model.HighlightImpl;
+import com.folioreader.model.Bookmark;
+import com.folioreader.model.BookmarkImpl;
 import com.folioreader.ui.view.UnderlinedTextView;
-import com.folioreader.util.AppUtil;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Locale;
+
+import static com.folioreader.Constants.DATE_FORMAT;
 
 public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.BookmarkHolder> {
 
-    private ArrayList<HashMap>  bookmarks;
+    private ArrayList<BookmarkImpl>  bookmarks;
     private BookmarkAdapter.BookmarkAdapterCallback callback;
     private Context context;
     private Config config;
 
 
-    public BookmarkAdapter(Context context, ArrayList<HashMap> bookmarks, BookmarkAdapter.BookmarkAdapterCallback callback, Config config) {
+    public BookmarkAdapter(Context context, ArrayList<BookmarkImpl> bookmarks, BookmarkAdapter.BookmarkAdapterCallback callback, Config config) {
         this.context = context;
         this.bookmarks = bookmarks;
         this.callback = callback;
@@ -52,6 +51,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Bookma
 
     @Override
     public void onBindViewHolder(final BookmarkHolder holder, final int position) {
+        final BookmarkImpl bookmark = bookmarks.get(position);
+        DateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
         holder.container.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -63,8 +64,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Bookma
                 });
             }
         }, 10);
-        holder.content.setText(bookmarks.get(position).get("name").toString());
-        holder.date.setText(bookmarks.get(position).get("date").toString());
+        holder.content.setText(bookmark.getName());
+        holder.date.setText(simpleDateFormat.format(bookmark.getDate()));
         holder.container.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,10 +75,9 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Bookma
         holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callback.deleteBookmark(bookmarks.get(position).get("date").toString(), bookmarks.get(position).get("name").toString() );
+                callback.deleteBookmark(bookmark);
                 bookmarks.remove(position);
                 notifyDataSetChanged();
-
             }
         });
         holder.container.postDelayed(new Runnable() {
@@ -118,7 +118,7 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Bookma
         return bookmarks.size();
     }
 
-    private HashMap getItem(int position) {
+    private BookmarkImpl getItem(int position) {
 
         return bookmarks.get(position);
     }
@@ -143,9 +143,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Bookma
 
 
     public interface BookmarkAdapterCallback {
-        void onItemClick(HashMap bookmark);
+        void onItemClick(BookmarkImpl bookmark);
 
-        void deleteBookmark(String date, String name);
-
+        void deleteBookmark(BookmarkImpl bookmark);
     }
 }

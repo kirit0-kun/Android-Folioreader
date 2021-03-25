@@ -10,6 +10,8 @@ import android.os.Parcelable;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.folioreader.model.Bookmark;
+import com.folioreader.model.BookmarkImpl;
 import com.folioreader.model.HighLight;
 import com.folioreader.model.HighlightImpl;
 import com.folioreader.model.locators.ReadLocator;
@@ -17,8 +19,11 @@ import com.folioreader.model.sqlite.DbAdapter;
 import com.folioreader.network.QualifiedTypeConverterFactory;
 import com.folioreader.network.R2StreamerApi;
 import com.folioreader.ui.activity.FolioActivity;
+import com.folioreader.ui.base.OnSaveBookmark;
 import com.folioreader.ui.base.OnSaveHighlight;
+import com.folioreader.ui.base.SaveReceivedBookmarkTask;
 import com.folioreader.ui.base.SaveReceivedHighlightTask;
+import com.folioreader.util.OnBookmarkListener;
 import com.folioreader.util.OnHighlightListener;
 import com.folioreader.util.ReadLocatorListener;
 
@@ -50,6 +55,7 @@ public class FolioReader {
     private Config config;
     private boolean overrideConfig;
     private int portNumber = Constants.DEFAULT_PORT_NUMBER;
+    private OnBookmarkListener onBookmarkListener;
     private OnHighlightListener onHighlightListener;
     private ReadLocatorListener readLocatorListener;
     private OnClosedListener onClosedListener;
@@ -78,6 +84,18 @@ public class FolioReader {
                     intent.getSerializableExtra(HighLight.HighLightAction.class.getName());
             if (onHighlightListener != null && highlightImpl != null && action != null) {
                 onHighlightListener.onHighlight(highlightImpl, action);
+            }
+        }
+    };
+    
+    private BroadcastReceiver bookmarkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            BookmarkImpl bookmarkImpl = intent.getParcelableExtra(BookmarkImpl.INTENT);
+            Bookmark.BookmarkAction action = (Bookmark.BookmarkAction)
+                    intent.getSerializableExtra(Bookmark.BookmarkAction.class.getName());
+            if (onBookmarkListener != null && bookmarkImpl != null && action != null) {
+                onBookmarkListener.onBookmark(bookmarkImpl, action);
             }
         }
     };
@@ -126,6 +144,8 @@ public class FolioReader {
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
         localBroadcastManager.registerReceiver(highlightReceiver,
                 new IntentFilter(HighlightImpl.BROADCAST_EVENT));
+        localBroadcastManager.registerReceiver(bookmarkReceiver,
+                new IntentFilter(BookmarkImpl.BROADCAST_EVENT));
         localBroadcastManager.registerReceiver(readLocatorReceiver,
                 new IntentFilter(ACTION_SAVE_READ_LOCATOR));
         localBroadcastManager.registerReceiver(closedReceiver,
@@ -250,6 +270,11 @@ public class FolioReader {
         new SaveReceivedHighlightTask(onSaveHighlight, highlights).execute();
     }
 
+    public void saveReceivedBookmarks(List<Bookmark> bookmarks,
+                                       OnSaveBookmark onSaveBookmark) {
+        new SaveReceivedBookmarkTask(onSaveBookmark, bookmarks).execute();
+    }
+
     /**
      * Closes all the activities related to FolioReader.
      * After closing all the activities of FolioReader, callback can be received in
@@ -295,6 +320,7 @@ public class FolioReader {
     private void unregisterListeners() {
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
         localBroadcastManager.unregisterReceiver(highlightReceiver);
+        localBroadcastManager.unregisterReceiver(bookmarkReceiver);
         localBroadcastManager.unregisterReceiver(readLocatorReceiver);
         localBroadcastManager.unregisterReceiver(closedReceiver);
     }

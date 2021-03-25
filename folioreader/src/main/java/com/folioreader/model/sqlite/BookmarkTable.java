@@ -6,11 +6,22 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.folioreader.model.Bookmark;
+import com.folioreader.model.BookmarkImpl;
+import com.folioreader.model.HighLight;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.folioreader.Constants.DATE_FORMAT;
+import static com.folioreader.model.sqlite.HighLightTable.getDateTimeString;
 
 /**
  * @author syed afshan on 24/12/20.
@@ -22,6 +33,7 @@ public class BookmarkTable {
 
     public static final String ID = "_id";
     public static final String bookID = "bookID";
+    public static final String uuid = "uuid";
     public static final String date = "date";
     public static final String name = "name";
     public static final String readlocator = "readlocator";
@@ -38,43 +50,53 @@ public class BookmarkTable {
             + bookID + " TEXT" + ","
             + date + " TEXT" + ","
             + name + " TEXT" + ","
+            + uuid + " TEXT" + ","
             + readlocator + " TEXT" + ")";
 
     public static final String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
-    public final boolean insertBookmark(String new_bookID, String new_date, String new_name, String new_cfi) {
-        ContentValues values = new ContentValues();
-        values.put(bookID, new_bookID);
-        values.put(date, new_date);
-        values.put(readlocator, new_cfi);
-        values.put(name, new_name);
-
-        return Bookmarkdatabase.insert(TABLE_NAME, null, values) > 0;
-
+    public static ContentValues getBookmarkContentValues(Bookmark bookmark) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(bookID, bookmark.getBookId());
+        contentValues.put(name, bookmark.getName());
+        contentValues.put(date, getDateTimeString(bookmark.getDate()));
+        contentValues.put(uuid, bookmark.getUUID());
+        return contentValues;
     }
 
-    public static final ArrayList<HashMap> getBookmarksForID(String id, Context context) {
+    public final long insertBookmark(BookmarkImpl bookmarkImpl) {
+        bookmarkImpl.setUUID(UUID.randomUUID().toString());
+        return DbAdapter.saveBookmark(getBookmarkContentValues(bookmarkImpl));
+    }
+
+    public static final ArrayList<BookmarkImpl> getBookmarksForID(String id, Context context) {
         if(Bookmarkdatabase == null){
             FolioDatabaseHelper dbHelper = new FolioDatabaseHelper(context);
             Bookmarkdatabase = dbHelper.getWritableDatabase();
         }
-        ArrayList<HashMap> bookmarks = new ArrayList<>();
+        ArrayList<BookmarkImpl> bookmarks = new ArrayList<>();
         Cursor c = Bookmarkdatabase.rawQuery("SELECT * FROM "
                 + TABLE_NAME + " WHERE " + bookID + " = \"" + id + "\"", null);
         while (c.moveToNext()) {
-            HashMap<String, String> name_value = new HashMap<String, String>();
-            name_value.put("name", c.getString(c.getColumnIndex(name)));
-            name_value.put("readlocator", c.getString(c.getColumnIndex(readlocator)));
-            name_value.put("date", c.getString(c.getColumnIndex(date)));
-
-
-            bookmarks.add(name_value);
+            DateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
+            String dateString = c.getString(c.getColumnIndex(BookmarkTable.date));
+            long noteId = c.getLong(c.getColumnIndex(BookmarkTable.ID));
+            String bookId = c.getString(c.getColumnIndex(BookmarkTable.bookID));
+            String uuid = c.getString(c.getColumnIndex(BookmarkTable.uuid));
+            String name = c.getString(c.getColumnIndex(BookmarkTable.name));
+            String locator = c.getString(c.getColumnIndex(BookmarkTable.readlocator));
+            Date date = null;
+            try {
+                date = simpleDateFormat.parse(dateString);
+            } catch (Exception ignored) {}
+            final BookmarkImpl bookmark = new BookmarkImpl((int)noteId, bookId, name, date, locator, uuid);
+            bookmarks.add(bookmark);
         };
         c.close();
         return bookmarks;
     }
 
-    public static final boolean deleteBookmark(String arg_date, String arg_name, Context context){
+    public static final boolean deleteBookmark(String arg_date, String arg_name, Context context) {
         if(Bookmarkdatabase == null){
             FolioDatabaseHelper dbHelper = new FolioDatabaseHelper(context);
             Bookmarkdatabase = dbHelper.getWritableDatabase();
@@ -90,4 +112,19 @@ public class BookmarkTable {
         return DbAdapter.deleteById(TABLE_NAME, ID, String.valueOf(id));
     }
 
+    public static final boolean deleteBookmarkById(int id, Context context) {
+        if(Bookmarkdatabase == null){
+            FolioDatabaseHelper dbHelper = new FolioDatabaseHelper(context);
+            Bookmarkdatabase = dbHelper.getWritableDatabase();
+        }
+        return DbAdapter.deleteById(TABLE_NAME, ID, String.valueOf(id));
+    }
+
+    public static void saveBookmarkIfNotExists(Bookmark bookmark) {
+        String query = "SELECT " + ID + " FROM " + TABLE_NAME + " WHERE " + uuid + " = \"" + bookmark.getUUID() + "\"";
+        int id = DbAdapter.getIdForQuery(query);
+        if (id == -1) {
+            DbAdapter.saveBookmark(getBookmarkContentValues(bookmark));
+        }
+    }
 }

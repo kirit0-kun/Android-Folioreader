@@ -26,8 +26,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.folioreader.Config;
 import com.folioreader.FolioReader;
+import com.folioreader.model.Bookmark;
 import com.folioreader.model.HighLight;
 import com.folioreader.model.locators.ReadLocator;
+import com.folioreader.ui.base.OnSaveBookmark;
 import com.folioreader.ui.base.OnSaveHighlight;
 import com.folioreader.util.AppUtil;
 import com.folioreader.util.OnHighlightListener;
@@ -125,6 +127,32 @@ public class HomeActivity extends AppCompatActivity
 
                 if (highlightList == null) {
                     folioReader.saveReceivedHighLights(highlightList, new OnSaveHighlight() {
+                        @Override
+                        public void onFinished() {
+                            //You can do anything on successful saving highlight list
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void getBookmarksAndSave() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<Bookmark> bookmarkList = null;
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    bookmarkList = objectMapper.readValue(
+                            loadAssetTextAsString("bookmarks/bookmarks.json"),
+                            new TypeReference<List<BookmarkData>>() {
+                            });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (bookmarkList == null) {
+                    folioReader.saveReceivedBookmarks(bookmarkList, new OnSaveBookmark() {
                         @Override
                         public void onFinished() {
                             //You can do anything on successful saving highlight list

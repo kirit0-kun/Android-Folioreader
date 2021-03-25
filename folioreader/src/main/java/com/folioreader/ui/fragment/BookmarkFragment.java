@@ -19,13 +19,14 @@ import com.folioreader.Config;
 import com.folioreader.Constants;
 import com.folioreader.FolioReader;
 import com.folioreader.R;
+import com.folioreader.model.Bookmark;
+import com.folioreader.model.BookmarkImpl;
 import com.folioreader.model.sqlite.BookmarkTable;
 import com.folioreader.ui.adapter.BookmarkAdapter;
 import com.folioreader.util.AppUtil;
+import com.folioreader.util.BookmarkUtil;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class BookmarkFragment extends Fragment implements BookmarkAdapter.BookmarkAdapterCallback {
     private static final String BOOKMARK_ITEM = "bookmark_item";
@@ -57,12 +58,11 @@ public class BookmarkFragment extends Fragment implements BookmarkAdapter.Bookma
     }
 
     @Override
-    public void onItemClick(HashMap bookmark) {
+    public void onItemClick(@NotNull BookmarkImpl bookmark) {
         Intent intent = new Intent();
         Log.i("BookmarkFragment", "bookmark is clicked: " + bookmark.toString());
-        intent.putExtra(BOOKMARK_ITEM,  bookmark);
+        intent.putExtra(BOOKMARK_ITEM, (Parcelable) bookmark);
         intent.putExtra(Constants.TYPE, Constants.BOOKMARK_SELECTED);
-
         getActivity().setResult(Activity.RESULT_OK, intent);
         getActivity().finish();
     }
@@ -91,8 +91,9 @@ public class BookmarkFragment extends Fragment implements BookmarkAdapter.Bookma
     }
 
     @Override
-    public void deleteBookmark(String date, String name) {
+    public void deleteBookmark(BookmarkImpl bookmark) {
         Log.i("BookmarkFragment", "deleteBookmark: ");
-        BookmarkTable.deleteBookmark(date, name, getActivity());
+        BookmarkTable.deleteBookmarkById(bookmark.getID(), getActivity());
+        BookmarkUtil.sendBookmarkBroadcastEvent(getActivity(), (BookmarkImpl) bookmark, Bookmark.BookmarkAction.DELETE);
     }
 }

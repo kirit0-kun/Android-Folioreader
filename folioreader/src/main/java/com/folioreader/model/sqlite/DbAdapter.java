@@ -76,6 +76,10 @@ public class DbAdapter {
         return mDatabase.insert(HighLightTable.TABLE_NAME, null, highlightContentValues);
     }
 
+    public static long saveBookmark(ContentValues bookmarkContentValues) {
+        return mDatabase.insert(BookmarkTable.TABLE_NAME, null, bookmarkContentValues);
+    }
+
     public static boolean updateHighLight(ContentValues highlightContentValues, String id) {
         return mDatabase.update(HighLightTable.TABLE_NAME, highlightContentValues, HighLightTable.ID + " = " + id, null) > 0;
     }
