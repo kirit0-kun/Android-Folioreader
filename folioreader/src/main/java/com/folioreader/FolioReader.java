@@ -46,8 +46,10 @@ public class FolioReader {
 
     public static final String EXTRA_BOOK_ID = "com.folioreader.extra.BOOK_ID";
     public static final String EXTRA_READ_LOCATOR = "com.folioreader.extra.READ_LOCATOR";
+    public static final String EXTRA_PROGRESS = "com.folioreader.extra.PROGRESS";
     public static final String EXTRA_PORT_NUMBER = "com.folioreader.extra.PORT_NUMBER";
     public static final String ACTION_SAVE_READ_LOCATOR = "com.folioreader.action.SAVE_READ_LOCATOR";
+    public static final String ACTION_SAVE_PROGRESS = "com.folioreader.action.SAVE_PROGRESS";
     public static final String ACTION_CLOSE_FOLIOREADER = "com.folioreader.action.CLOSE_FOLIOREADER";
     public static final String ACTION_FOLIOREADER_CLOSED = "com.folioreader.action.FOLIOREADER_CLOSED";
 
@@ -111,6 +113,15 @@ public class FolioReader {
         }
     };
 
+    private BroadcastReceiver progressReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            double progress = intent.getDoubleExtra(FolioReader.EXTRA_PROGRESS, 0.0);
+            if (readLocatorListener != null)
+                readLocatorListener.updateProgression(progress);
+        }
+    };
+
     private BroadcastReceiver closedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -148,6 +159,8 @@ public class FolioReader {
                 new IntentFilter(BookmarkImpl.BROADCAST_EVENT));
         localBroadcastManager.registerReceiver(readLocatorReceiver,
                 new IntentFilter(ACTION_SAVE_READ_LOCATOR));
+        localBroadcastManager.registerReceiver(progressReceiver,
+                new IntentFilter(ACTION_SAVE_PROGRESS));
         localBroadcastManager.registerReceiver(closedReceiver,
                 new IntentFilter(ACTION_FOLIOREADER_CLOSED));
     }
@@ -327,6 +340,7 @@ public class FolioReader {
         localBroadcastManager.unregisterReceiver(highlightReceiver);
         localBroadcastManager.unregisterReceiver(bookmarkReceiver);
         localBroadcastManager.unregisterReceiver(readLocatorReceiver);
+        localBroadcastManager.unregisterReceiver(progressReceiver);
         localBroadcastManager.unregisterReceiver(closedReceiver);
     }
 }

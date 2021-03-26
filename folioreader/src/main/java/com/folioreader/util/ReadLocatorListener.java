@@ -8,4 +8,6 @@ import com.folioreader.model.locators.ReadLocator;
 public interface ReadLocatorListener {
 
     void saveReadLocator(ReadLocator readLocator);
+
+    void updateProgression(double progress);
 }

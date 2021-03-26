@@ -109,6 +109,11 @@ public class HomeActivity extends AppCompatActivity
         Log.i(LOG_TAG, "-> saveReadLocator -> " + readLocator.toJson());
     }
 
+    @Override
+    public void updateProgression(double progress) {
+        Log.i(LOG_TAG, "-> progress -> " + progress);
+    }
+
     /*
      * For testing purpose, we are getting dummy highlights from asset. But you can get highlights from your server
      * On success, you can save highlights to FolioReader DB.

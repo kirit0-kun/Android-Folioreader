@@ -22,6 +22,8 @@ public interface FolioActivityCallback {
 
     void storeLastReadLocator(ReadLocator lastReadLocator);
 
+    void updateDonePercentage(double percentage);
+
     void toggleSystemUI();
 
     void setDayMode();

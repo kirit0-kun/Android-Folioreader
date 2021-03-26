@@ -642,6 +642,18 @@ class FolioPageFragment : Fragment(),
     }
 
     @JavascriptInterface
+    fun storeProgress(progress: Double) {
+
+        synchronized(this) {
+            val intent = Intent(FolioReader.ACTION_SAVE_PROGRESS)
+            intent.putExtra(FolioReader.EXTRA_PROGRESS, progress)
+            LocalBroadcastManager.getInstance(context!!).sendBroadcast(intent)
+
+            (this as java.lang.Object).notify()
+        }
+    }
+
+    @JavascriptInterface
     fun setHorizontalPageCount(horizontalPageCount: Int) {
         Log.v(
             LOG_TAG, "-> setHorizontalPageCount = " + horizontalPageCount
@@ -706,6 +718,7 @@ class FolioPageFragment : Fragment(),
             val totalPages =
                 ceil(mWebview!!.contentHeightVal.toDouble() / mWebview!!.webViewHeight).toInt()
             val pagesRemaining = totalPages - currentPage
+            val percentage = currentPage.toDouble() / totalPages.toDouble()
             val pagesRemainingStrFormat = if (pagesRemaining > 1)
                 getString(R.string.pages_left)
             else
@@ -734,6 +747,7 @@ class FolioPageFragment : Fragment(),
 
             mMinutesLeftTextView!!.text = minutesRemainingStr
             mPagesLeftTextView!!.text = pagesRemainingStr
+            mActivityCallback?.updateDonePercentage(percentage);
         } catch (exp: java.lang.ArithmeticException) {
             Log.e("divide error", exp.toString())
         } catch (exp: IllegalStateException) {

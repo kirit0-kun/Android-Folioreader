@@ -645,7 +645,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
         if (streamerUri == null) {
             streamerUri =
-                Uri.parse(String.format(Locale.forLanguageTag("en"), STREAMER_URL_TEMPLATE, LOCALHOST, portNumber, bookFileName))
+                Uri.parse(String.format(Locale.US, STREAMER_URL_TEMPLATE, LOCALHOST, portNumber, bookFileName))
         }
         return streamerUri.toString()
     }
@@ -1103,6 +1103,13 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     override fun storeLastReadLocator(lastReadLocator: ReadLocator) {
         Log.v(LOG_TAG, "-> storeLastReadLocator")
         this.lastReadLocator = lastReadLocator
+    }
+
+    override fun updateDonePercentage(percentage: Double) {
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        val intent = Intent(FolioReader.ACTION_SAVE_PROGRESS)
+        intent.putExtra(FolioReader.EXTRA_PROGRESS, percentage)
+        localBroadcastManager.sendBroadcast(intent)
     }
 
     private fun setConfig(savedInstanceState: Bundle?) {
