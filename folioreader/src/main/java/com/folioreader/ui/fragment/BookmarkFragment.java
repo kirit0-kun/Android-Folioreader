@@ -28,9 +28,9 @@ import com.folioreader.util.BookmarkUtil;
 
 import org.jetbrains.annotations.NotNull;
 
-public class BookmarkFragment extends Fragment implements BookmarkAdapter.BookmarkAdapterCallback {
-    private static final String BOOKMARK_ITEM = "bookmark_item";
+import static com.folioreader.ui.activity.FolioActivity.BOOKMARK_ITEM;
 
+public class BookmarkFragment extends Fragment implements BookmarkAdapter.BookmarkAdapterCallback {
     private String mBookId;
     private View mRootView;
     private BookmarkAdapter adapter;
@@ -61,7 +61,7 @@ public class BookmarkFragment extends Fragment implements BookmarkAdapter.Bookma
     public void onItemClick(@NotNull BookmarkImpl bookmark) {
         Intent intent = new Intent();
         Log.i("BookmarkFragment", "bookmark is clicked: " + bookmark.toString());
-        intent.putExtra(BOOKMARK_ITEM, (Parcelable) bookmark);
+        intent.putExtra(BOOKMARK_ITEM, bookmark);
         intent.putExtra(Constants.TYPE, Constants.BOOKMARK_SELECTED);
         getActivity().setResult(Activity.RESULT_OK, intent);
         getActivity().finish();

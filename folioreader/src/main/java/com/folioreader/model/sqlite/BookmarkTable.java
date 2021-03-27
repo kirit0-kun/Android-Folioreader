@@ -59,6 +59,7 @@ public class BookmarkTable {
         ContentValues contentValues = new ContentValues();
         contentValues.put(bookID, bookmark.getBookId());
         contentValues.put(name, bookmark.getName());
+        contentValues.put(readlocator, bookmark.getLocation());
         contentValues.put(date, getDateTimeString(bookmark.getDate()));
         contentValues.put(uuid, bookmark.getUUID());
         return contentValues;

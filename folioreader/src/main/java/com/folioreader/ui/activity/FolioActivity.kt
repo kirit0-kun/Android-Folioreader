@@ -137,8 +137,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         private const val BUNDLE_DISTRACTION_FREE_MODE = "BUNDLE_DISTRACTION_FREE_MODE"
         const val EXTRA_SEARCH_ITEM = "EXTRA_SEARCH_ITEM"
         const val ACTION_SEARCH_CLEAR = "ACTION_SEARCH_CLEAR"
-        private const val HIGHLIGHT_ITEM = "highlight_item"
-        private const val BOOKMARK_ITEM = "bookmark_item"
+        const val HIGHLIGHT_ITEM = "highlight_item"
+        const val BOOKMARK_ITEM = "bookmark_item"
     }
 
     private val closeBroadcastReceiver = object : BroadcastReceiver() {
