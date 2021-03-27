@@ -120,3 +120,16 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$versions.lifecycle"
 }
 apply from: '../folioreader/bintray/bintrayv1.gradle'
+
+task deleteJar(type: Delete) {
+    delete 'libs/jars/folioreaderlib.jar'
+}
+
+task createJar(type: Copy) {
+    from('build/intermediates/bundles/release/')
+    into('libs/jars/')
+    include('classes.jar')
+    rename('classes.jar', 'folioreaderlib.jar')
+}
+
+createJar.dependsOn(deleteJar, build)
