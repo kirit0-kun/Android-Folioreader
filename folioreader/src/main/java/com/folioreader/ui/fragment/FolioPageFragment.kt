@@ -133,6 +133,20 @@ class FolioPageFragment : Fragment(),
     val pageName: String
         get() = mBookTitle + "$" + spineItem.href
 
+    private val webViewPageChangeListener: ViewPager.OnPageChangeListener = object : ViewPager.OnPageChangeListener {
+        override fun onPageScrolled(
+            position: Int,
+            positionOffset: Float,
+            positionOffsetPixels: Int
+        ) {}
+        override fun onPageSelected(position: Int) {
+            Log.v(WebViewPager.LOG_TAG, "-> FolioPageFragment -> onPageSelected -> $position")
+            setIndicatorVisibility()
+            updateRemainingText(webViewPager!!.horizontalPageCount,position + 1)
+        }
+        override fun onPageScrollStateChanged(state: Int) {}
+    }
+
     private val isCurrentFragment: Boolean
         get() {
             return isAdded && mActivityCallback!!.currentChapterIndex == spineIndex
@@ -373,19 +387,8 @@ class FolioPageFragment : Fragment(),
         mWebview = webViewLayout.findViewById(R.id.folioWebView)
         mWebview!!.setParentFragment(this)
         webViewPager = webViewLayout.findViewById(R.id.webViewPager)
-        webViewPager!!.setOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
-            ) {}
-            override fun onPageSelected(position: Int) {
-                Log.v(WebViewPager.LOG_TAG, "-> FolioPageFragment -> onPageSelected -> $position")
-                setIndicatorVisibility()
-                updateRemainingText(webViewPager!!.horizontalPageCount,position + 1)
-            }
-            override fun onPageScrollStateChanged(state: Int) {}
-        })
+
+        webViewPager!!.addOnPageChangeListener(webViewPageChangeListener)
 
         if (activity is FolioActivityCallback)
             mWebview!!.setFolioActivityCallback((activity as FolioActivityCallback?)!!)
@@ -840,6 +843,7 @@ class FolioPageFragment : Fragment(),
     override fun onDestroyView() {
         mFadeInAnimation!!.setAnimationListener(null)
         mFadeOutAnimation!!.setAnimationListener(null)
+        webViewPager!!.removeOnPageChangeListener(webViewPageChangeListener)
         EventBus.getDefault().unregister(this)
         super.onDestroyView()
     }
