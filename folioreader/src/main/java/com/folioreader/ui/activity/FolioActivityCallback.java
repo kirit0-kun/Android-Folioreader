@@ -22,7 +22,7 @@ public interface FolioActivityCallback {
 
     void storeLastReadLocator(ReadLocator lastReadLocator);
 
-    void updateDonePercentage(double percentage);
+    void updateDonePercentage(int current, int total);
 
     void toggleSystemUI();
 

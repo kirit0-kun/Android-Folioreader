@@ -23,6 +23,7 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.viewpager.widget.ViewPager
 import com.folioreader.Config
 import com.folioreader.FolioReader
 import com.folioreader.R
@@ -107,6 +108,7 @@ class FolioPageFragment : Fragment(),
     var mWebview: FolioWebView? = null
     private var webViewPager: WebViewPager? = null
     private var mPagesLeftTextView: TextView? = null
+    private var mIndicatorLayout: LinearLayout? = null
     private var mMinutesLeftTextView: TextView? = null
     private var mActivityCallback: FolioActivityCallback? = null
 
@@ -171,7 +173,8 @@ class FolioPageFragment : Fragment(),
         highlightStyle =
             HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.Normal)
         mRootView = inflater.inflate(R.layout.folio_page_fragment, container, false)
-        mPagesLeftTextView = mRootView!!.findViewById<View>(R.id.pagesLeft) as TextView
+        mIndicatorLayout = mRootView!!.findViewById<View>(R.id.indicatorLayout) as LinearLayout
+        mPagesLeftTextView = mRootView!!.findViewById<View>(R.id.mainPagesLeft) as TextView
         mMinutesLeftTextView = mRootView!!.findViewById<View>(R.id.minutesLeft) as TextView
 
         mConfig = AppUtil.getSavedConfig(context)
@@ -370,6 +373,19 @@ class FolioPageFragment : Fragment(),
         mWebview = webViewLayout.findViewById(R.id.folioWebView)
         mWebview!!.setParentFragment(this)
         webViewPager = webViewLayout.findViewById(R.id.webViewPager)
+        webViewPager!!.setOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {}
+            override fun onPageSelected(position: Int) {
+                Log.v(WebViewPager.LOG_TAG, "-> FolioPageFragment -> onPageSelected -> $position")
+                setIndicatorVisibility()
+                updateRemainingText(webViewPager!!.horizontalPageCount,position + 1)
+            }
+            override fun onPageScrollStateChanged(state: Int) {}
+        })
 
         if (activity is FolioActivityCallback)
             mWebview!!.setFolioActivityCallback((activity as FolioActivityCallback?)!!)
@@ -394,13 +410,15 @@ class FolioPageFragment : Fragment(),
         mWebview!!.addJavascriptInterface(loadingView, "LoadingView")
         mWebview!!.addJavascriptInterface(mWebview, "FolioWebView")
 
-        mWebview!!.setScrollListener(object : FolioWebView.ScrollListener {
+        if (mConfig?.direction == Config.Direction.VERTICAL) {
+            mWebview!!.setScrollListener(object : FolioWebView.ScrollListener {
             override fun onScrollChange(percent: Int) {
                 setIndicatorVisibility()
-                mScrollSeekbar!!.setProgressAndThumb(percent)
+                mScrollSeekbar?.setProgressAndThumb(percent)
                 updatePagesLeftText(percent)
             }
         })
+        }
 
         mWebview!!.webViewClient = webViewClient
         mWebview!!.webChromeClient = webChromeClient
@@ -416,8 +434,10 @@ class FolioPageFragment : Fragment(),
             mWebview!!.loadUrl("javascript:checkCompatMode()")
             mWebview!!.loadUrl("javascript:alert(getReadingTime())")
 
-            if (mActivityCallback!!.direction == Config.Direction.HORIZONTAL)
+            if (mActivityCallback!!.direction == Config.Direction.HORIZONTAL) {
                 mWebview!!.loadUrl("javascript:initHorizontalDirection()")
+                mIndicatorLayout!!.visibility = View.GONE
+            }
 
             view.loadUrl(
                     String.format(
@@ -717,43 +737,61 @@ class FolioPageFragment : Fragment(),
             val currentPage = (ceil(scrollY.toDouble() / mWebview!!.webViewHeight) + 1).toInt()
             val totalPages =
                 ceil(mWebview!!.contentHeightVal.toDouble() / mWebview!!.webViewHeight).toInt()
-            val pagesRemaining = totalPages - currentPage
-            val percentage = currentPage.toDouble() / totalPages.toDouble()
-            val pagesRemainingStrFormat = if (pagesRemaining > 1)
-                getString(R.string.pages_left)
-            else
-                getString(R.string.page_left)
-            val pagesRemainingStr = String.format(
-                    Locale.US,
-                    pagesRemainingStrFormat, pagesRemaining
-            )
-
-            val minutesRemaining =
-                ceil((pagesRemaining * mTotalMinutes).toDouble() / totalPages).toInt()
-            val minutesRemainingStr: String
-            minutesRemainingStr = if (minutesRemaining > 1) {
-                String.format(
-                        Locale.US, getString(R.string.minutes_left),
-                        minutesRemaining
-                )
-            } else if (minutesRemaining == 1) {
-                String.format(
-                        Locale.US, getString(R.string.minute_left),
-                        minutesRemaining
-                )
-            } else {
-                getString(R.string.less_than_minute)
-            }
-
-            mMinutesLeftTextView!!.text = minutesRemainingStr
-            mPagesLeftTextView!!.text = pagesRemainingStr
-            mActivityCallback?.updateDonePercentage(percentage);
+            updateRemainingText(totalPages, currentPage)
         } catch (exp: java.lang.ArithmeticException) {
             Log.e("divide error", exp.toString())
         } catch (exp: IllegalStateException) {
             Log.e("divide error", exp.toString())
         }
 
+    }
+
+    @JavascriptInterface
+    fun setCurrentPage(pageIndex: Int, totalPages: Int) {
+        try {
+            val currentPage = pageIndex + 1
+            updateRemainingText(totalPages, currentPage)
+        } catch (exp: java.lang.ArithmeticException) {
+            Log.e("divide error", exp.toString())
+        } catch (exp: IllegalStateException) {
+            Log.e("divide error", exp.toString())
+        }
+    }
+
+    private fun updateRemainingText(
+        totalPages: Int,
+        currentPage: Int
+    ) {
+        val pagesRemaining = totalPages - currentPage
+        val pagesRemainingStrFormat = if (pagesRemaining > 1)
+            getString(R.string.pages_left)
+        else
+            getString(R.string.page_left)
+        val pagesRemainingStr = String.format(
+            Locale.US,
+            pagesRemainingStrFormat, pagesRemaining
+        )
+
+        val minutesRemaining =
+            ceil((pagesRemaining * mTotalMinutes).toDouble() / totalPages).toInt()
+        val minutesRemainingStr: String
+        minutesRemainingStr = if (minutesRemaining > 1) {
+            String.format(
+                Locale.US, getString(R.string.minutes_left),
+                minutesRemaining
+            )
+        } else if (minutesRemaining == 1) {
+            String.format(
+                Locale.US, getString(R.string.minute_left),
+                minutesRemaining
+            )
+        } else {
+            getString(R.string.less_than_minute)
+        }
+
+        mMinutesLeftTextView!!.text = minutesRemainingStr
+        mPagesLeftTextView!!.text = pagesRemainingStr
+        mActivityCallback?.updateDonePercentage(currentPage, totalPages)
     }
 
     private fun initAnimations() {

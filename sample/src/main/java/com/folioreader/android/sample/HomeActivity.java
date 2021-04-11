@@ -71,7 +71,6 @@ public class HomeActivity extends AppCompatActivity
                 if (config == null)
                     config = new Config();
                 config.setAllowedDirection(Config.AllowedDirection.VERTICAL_AND_HORIZONTAL);
-                config.setShowTts(true);
 
                 folioReader.setConfig(config, true)
                         .openBook(R.raw.accessible_epub_3);
@@ -92,7 +91,7 @@ public class HomeActivity extends AppCompatActivity
                 config.setShowRemainingIndicator(true);
                 config.setShowTextSelection(false);
 
-                folioReader.setReadLocator(readLocator);
+//                folioReader.setReadLocator(readLocator);
                 folioReader.setConfig(config, true)
                         .openBook("file:///android_asset/TheSilverChair.epub");
             }

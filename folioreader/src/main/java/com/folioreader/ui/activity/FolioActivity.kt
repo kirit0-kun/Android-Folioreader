@@ -36,6 +36,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
@@ -77,7 +78,6 @@ import org.readium.r2.streamer.parser.EpubParser
 import org.readium.r2.streamer.parser.PubBox
 import org.readium.r2.streamer.server.Server
 import java.lang.ref.WeakReference
-import java.text.SimpleDateFormat
 import java.util.*
 
 class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControllerCallback,
@@ -86,6 +86,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     private var bookFileName: String? = null
 
     private var mFolioPageViewPager: DirectionalViewpager? = null
+    private var mMainPagesLeft: TextView? = null
     private var actionBar: ActionBar? = null
     private var appBarLayout: FolioAppBarLayout? = null
     private var toolbar: Toolbar? = null
@@ -124,6 +125,59 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     private var density: Float = 0.toFloat()
     private var topActivity: Boolean? = null
     private var taskImportance: Int = 0
+
+    private var pageList: DirectionalViewpager.OnPageChangeListener = object : DirectionalViewpager.OnPageChangeListener {
+        override fun onPageScrolled(
+            position: Int,
+            positionOffset: Float,
+            positionOffsetPixels: Int
+        ) {
+        }
+
+        override fun onPageSelected(position: Int) {
+            Log.v(LOG_TAG, "-> onPageSelected -> DirectionalViewpager -> position = $position, total =${mFolioPageFragmentAdapter?.count}")
+
+            EventBus.getDefault().post(
+                MediaOverlayPlayPauseEvent(
+                    spine!![currentChapterIndex].href, false, true
+                )
+            )
+            mediaControllerFragment!!.setPlayButtonDrawable()
+            currentChapterIndex = position
+
+            val length = mFolioPageFragmentAdapter?.count
+            if (length != null && length > 1) {
+                updateDonePercentage(position + 1, length);
+            }
+        }
+
+        override fun onPageScrollStateChanged(state: Int) {
+
+            if (state == DirectionalViewpager.SCROLL_STATE_IDLE) {
+                val position = mFolioPageViewPager!!.currentItem
+                Log.v(
+                    LOG_TAG, "-> onPageScrollStateChanged -> DirectionalViewpager -> " +
+                            "position = " + position
+                )
+
+                var folioPageFragment =
+                    mFolioPageFragmentAdapter!!.getItem(position - 1) as FolioPageFragment?
+                if (folioPageFragment != null) {
+                    folioPageFragment.scrollToLast()
+                    if (folioPageFragment.mWebview != null)
+                        folioPageFragment.mWebview!!.dismissPopupWindow()
+                }
+
+                folioPageFragment =
+                    mFolioPageFragmentAdapter!!.getItem(position + 1) as FolioPageFragment?
+                if (folioPageFragment != null) {
+                    folioPageFragment.scrollToFirst()
+                    if (folioPageFragment.mWebview != null)
+                        folioPageFragment.mWebview!!.dismissPopupWindow()
+                }
+            }
+        }
+    }
 
     companion object {
 
@@ -295,6 +349,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
         initActionBar()
         initMediaController()
+        initIndicator()
 
         if (ContextCompat.checkSelfPermission(
                         this@FolioActivity,
@@ -346,6 +401,16 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             // Fix for appBarLayout.fitSystemWindows() not being called on API < 16
             appBarLayout!!.setTopMargin(statusBarHeight)
         }
+    }
+
+    private fun initIndicator() {
+
+        mMainPagesLeft = findViewById(R.id.mainPagesLeft)
+        val config = AppUtil.getSavedConfig(applicationContext)!!
+        if (config.direction == Config.Direction.HORIZONTAL) {
+//            mMainPagesLeft.visibility = View.GONE
+        }
+
     }
 
     override fun setDayMode() {
@@ -950,6 +1015,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     override fun onDestroy() {
         super.onDestroy()
 
+        mFolioPageViewPager?.removeOnPageChangeListener(pageList)
+
         if (outState != null)
             outState!!.putSerializable(BUNDLE_READ_LOCATOR_CONFIG_CHANGE, lastReadLocator)
 
@@ -975,54 +1042,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
         mFolioPageViewPager = findViewById(R.id.folioPageViewPager)
         // Replacing with addOnPageChangeListener(), onPageSelected() is not invoked
-        mFolioPageViewPager!!.setOnPageChangeListener(object :
-                DirectionalViewpager.OnPageChangeListener {
-            override fun onPageScrolled(
-                    position: Int,
-                    positionOffset: Float,
-                    positionOffsetPixels: Int
-            ) {
-            }
-
-            override fun onPageSelected(position: Int) {
-                Log.v(LOG_TAG, "-> onPageSelected -> DirectionalViewpager -> position = $position")
-
-                EventBus.getDefault().post(
-                        MediaOverlayPlayPauseEvent(
-                                spine!![currentChapterIndex].href, false, true
-                        )
-                )
-                mediaControllerFragment!!.setPlayButtonDrawable()
-                currentChapterIndex = position
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-
-                if (state == DirectionalViewpager.SCROLL_STATE_IDLE) {
-                    val position = mFolioPageViewPager!!.currentItem
-                    Log.v(
-                            LOG_TAG, "-> onPageScrollStateChanged -> DirectionalViewpager -> " +
-                            "position = " + position
-                    )
-
-                    var folioPageFragment =
-                            mFolioPageFragmentAdapter!!.getItem(position - 1) as FolioPageFragment?
-                    if (folioPageFragment != null) {
-                        folioPageFragment.scrollToLast()
-                        if (folioPageFragment.mWebview != null)
-                            folioPageFragment.mWebview!!.dismissPopupWindow()
-                    }
-
-                    folioPageFragment =
-                            mFolioPageFragmentAdapter!!.getItem(position + 1) as FolioPageFragment?
-                    if (folioPageFragment != null) {
-                        folioPageFragment.scrollToFirst()
-                        if (folioPageFragment.mWebview != null)
-                            folioPageFragment.mWebview!!.dismissPopupWindow()
-                    }
-                }
-            }
-        })
+        mFolioPageViewPager!!.addOnPageChangeListener(pageList)
 
         mFolioPageViewPager!!.setDirection(direction)
         mFolioPageFragmentAdapter = FolioPageFragmentAdapter(
@@ -1105,11 +1125,21 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         this.lastReadLocator = lastReadLocator
     }
 
-    override fun updateDonePercentage(percentage: Double) {
+    override fun updateDonePercentage(current: Int, total: Int) {
         val localBroadcastManager = LocalBroadcastManager.getInstance(this)
         val intent = Intent(FolioReader.ACTION_SAVE_PROGRESS)
-        intent.putExtra(FolioReader.EXTRA_PROGRESS, percentage)
+        intent.putExtra(FolioReader.EXTRA_PROGRESS, current.toDouble() / total)
         localBroadcastManager.sendBroadcast(intent)
+        val pagesRemaining = total - current;
+        val pagesRemainingStrFormat = if (pagesRemaining > 1)
+            getString(R.string.pages_left)
+        else
+            getString(R.string.page_left)
+        val pagesRemainingStr = String.format(
+            Locale.US,
+            pagesRemainingStrFormat, pagesRemaining
+        )
+        mMainPagesLeft!!.text = pagesRemainingStr;
     }
 
     private fun setConfig(savedInstanceState: Bundle?) {
