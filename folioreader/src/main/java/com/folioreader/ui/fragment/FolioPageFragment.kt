@@ -147,6 +147,17 @@ class FolioPageFragment : Fragment(),
         override fun onPageScrollStateChanged(state: Int) {}
     }
 
+    private val onLayoutChangeListener = object : View.OnLayoutChangeListener {
+        override fun onLayoutChange(
+            view :View?, left :Int, top :Int, right :Int, bottom :Int, oldLeft :Int, oldTop :Int, oldRight :Int, oldBottom :Int
+        )  {             val height =
+            Math.floor((mWebview!!.contentHeight * mWebview!!.scale).toDouble()).toInt()
+            val webViewHeight = mWebview!!.measuredHeight
+            mScrollSeekbar!!.maximum = height - webViewHeight
+        }
+
+    }
+
     private val isCurrentFragment: Boolean
         get() {
             return isAdded && mActivityCallback!!.currentChapterIndex == spineIndex
@@ -394,12 +405,7 @@ class FolioPageFragment : Fragment(),
             mWebview!!.setFolioActivityCallback((activity as FolioActivityCallback?)!!)
 
         setupScrollBar()
-        mWebview!!.addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            val height =
-                Math.floor((mWebview!!.contentHeight * mWebview!!.scale).toDouble()).toInt()
-            val webViewHeight = mWebview!!.measuredHeight
-            mScrollSeekbar!!.maximum = height - webViewHeight
-        }
+        mWebview!!.addOnLayoutChangeListener(onLayoutChangeListener)
 
         mWebview!!.settings.javaScriptEnabled = true
         mWebview!!.isVerticalScrollBarEnabled = false
@@ -844,6 +850,7 @@ class FolioPageFragment : Fragment(),
         mFadeInAnimation!!.setAnimationListener(null)
         mFadeOutAnimation!!.setAnimationListener(null)
         webViewPager!!.removeOnPageChangeListener(webViewPageChangeListener)
+        mWebview!!.removeOnLayoutChangeListener(onLayoutChangeListener)
         EventBus.getDefault().unregister(this)
         super.onDestroyView()
     }

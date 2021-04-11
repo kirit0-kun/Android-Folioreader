@@ -725,13 +725,10 @@ function scrollToNodeOrRange(nodeOrRange) {
 
         case Direction.HORIZONTAL:
             var clientWidth = document.documentElement.clientWidth;
-            var scrollWidth = scrollingElement.scrollWidth;
             var pageIndex = Math.floor(nodeOffsetLeft / clientWidth);
             var newScrollLeft = clientWidth * pageIndex;
-            var totalPages = Math.floor(scrollWidth / clientWidth);
-            console.log("-> Scrolled to = " + newScrollLeft);
+            //console.log("-> newScrollLeft = " + newScrollLeft);
             scrollingElement.scrollLeft = newScrollLeft;
-            FolioPageFragment.setCurrentPage(pageIndex, totalPages);
             WebViewPager.setCurrentPage(pageIndex);
             break;
     }
