@@ -755,18 +755,6 @@ class FolioPageFragment : Fragment(),
 
     }
 
-    @JavascriptInterface
-    fun setCurrentPage(pageIndex: Int, totalPages: Int) {
-        try {
-            val currentPage = pageIndex + 1
-            updateRemainingText(totalPages, currentPage)
-        } catch (exp: java.lang.ArithmeticException) {
-            Log.e("divide error", exp.toString())
-        } catch (exp: IllegalStateException) {
-            Log.e("divide error", exp.toString())
-        }
-    }
-
     private fun updateRemainingText(
         totalPages: Int,
         currentPage: Int

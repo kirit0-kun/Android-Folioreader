@@ -69,7 +69,6 @@ class WebViewPager : ViewPager {
 
             override fun onPageSelected(position: Int) {
                 Log.v(LOG_TAG, "-> onPageSelected -> $position")
-
             }
 
             override fun onPageScrollStateChanged(state: Int) {}
@@ -99,6 +98,7 @@ class WebViewPager : ViewPager {
     @JavascriptInterface
     fun setCurrentPage(pageIndex: Int) {
         Log.v(LOG_TAG, "-> setCurrentItem -> pageIndex = $pageIndex")
+
         uiHandler!!.post { setCurrentItem(pageIndex, false) }
     }
 
