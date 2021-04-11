@@ -2,6 +2,7 @@ package com.folioreader.ui.fragment
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -14,12 +15,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.webkit.*
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -73,10 +73,10 @@ class FolioPageFragment : Fragment(),
 
         @JvmStatic
         fun newInstance(
-            spineIndex: Int,
-            bookTitle: String,
-            spineRef: Link,
-            bookId: String
+                spineIndex: Int,
+                bookTitle: String,
+                spineRef: Link,
+                bookId: String
         ): FolioPageFragment {
             val fragment = FolioPageFragment()
             val args = Bundle()
@@ -137,8 +137,8 @@ class FolioPageFragment : Fragment(),
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?, savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
 
         this.savedInstanceState = savedInstanceState
@@ -227,17 +227,17 @@ class FolioPageFragment : Fragment(),
         if (isAdded) {
             when (event.style) {
                 MediaOverlayHighlightStyleEvent.Style.DEFAULT -> highlightStyle =
-                    HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.Normal)
+                        HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.Normal)
                 MediaOverlayHighlightStyleEvent.Style.UNDERLINE -> highlightStyle =
-                    HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.DottetUnderline)
+                        HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.DottetUnderline)
                 MediaOverlayHighlightStyleEvent.Style.BACKGROUND -> highlightStyle =
-                    HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.TextColor)
+                        HighlightImpl.HighlightStyle.classForStyle(HighlightImpl.HighlightStyle.TextColor)
             }
             mWebview!!.loadUrl(
-                String.format(
-                    getString(R.string.setmediaoverlaystyle),
-                    highlightStyle
-                )
+                    String.format(
+                            getString(R.string.setmediaoverlaystyle),
+                            highlightStyle
+                    )
             )
         }
     }
@@ -332,10 +332,10 @@ class FolioPageFragment : Fragment(),
 
             uiHandler.post {
                 mWebview!!.loadDataWithBaseURL(
-                    mActivityCallback?.streamerUrl + path,
-                    HtmlUtil.getHtmlContent(mWebview!!.context, mHtmlString, mConfig!!),
-                    mimeType,
-                    "UTF-8", null
+                        mActivityCallback?.streamerUrl + path,
+                        HtmlUtil.getHtmlContent(mWebview!!.context, mHtmlString, mConfig!!),
+                        mimeType,
+                        "UTF-8", null
                 )
             }
         }
@@ -420,12 +420,12 @@ class FolioPageFragment : Fragment(),
                 mWebview!!.loadUrl("javascript:initHorizontalDirection()")
 
             view.loadUrl(
-                String.format(
-                    getString(R.string.setmediaoverlaystyle),
-                    HighlightImpl.HighlightStyle.classForStyle(
-                        HighlightImpl.HighlightStyle.Normal
+                    String.format(
+                            getString(R.string.setmediaoverlaystyle),
+                            HighlightImpl.HighlightStyle.classForStyle(
+                                    HighlightImpl.HighlightStyle.Normal
+                            )
                     )
-                )
             )
 
             val rangy = HighlightUtil.generateRangyString(pageName)
@@ -437,8 +437,8 @@ class FolioPageFragment : Fragment(),
 
                 if (searchLocatorVisible != null) {
                     val callHighlightSearchLocator = String.format(
-                        getString(R.string.callHighlightSearchLocator),
-                        searchLocatorVisible?.locations?.cfi
+                            getString(R.string.callHighlightSearchLocator),
+                            searchLocatorVisible?.locations?.cfi
                     )
                     mWebview!!.loadUrl(callHighlightSearchLocator)
 
@@ -468,8 +468,8 @@ class FolioPageFragment : Fragment(),
 
             } else if (searchLocatorVisible != null) {
                 val callHighlightSearchLocator = String.format(
-                    getString(R.string.callHighlightSearchLocator),
-                    searchLocatorVisible?.locations?.cfi
+                        getString(R.string.callHighlightSearchLocator),
+                        searchLocatorVisible?.locations?.cfi
                 )
                 mWebview!!.loadUrl(callHighlightSearchLocator)
 
@@ -537,8 +537,8 @@ class FolioPageFragment : Fragment(),
         // prevent favicon.ico to be loaded automatically
         @SuppressLint("NewApi")
         override fun shouldInterceptRequest(
-            view: WebView,
-            request: WebResourceRequest
+                view: WebView,
+                request: WebResourceRequest
         ): WebResourceResponse? {
             if (!request.isForMainFrame
                 && request.url.path != null
@@ -566,10 +566,10 @@ class FolioPageFragment : Fragment(),
         override fun onProgressChanged(view: WebView, progress: Int) {}
 
         override fun onJsAlert(
-            view: WebView,
-            url: String,
-            message: String,
-            result: JsResult
+                view: WebView,
+                url: String,
+                message: String,
+                result: JsResult
         ): Boolean {
 
             // Check if this `if` block can be dropped?
@@ -656,8 +656,8 @@ class FolioPageFragment : Fragment(),
     @JavascriptInterface
     fun setHorizontalPageCount(horizontalPageCount: Int) {
         Log.v(
-            LOG_TAG, "-> setHorizontalPageCount = " + horizontalPageCount
-                    + " -> " + spineItem.href
+                LOG_TAG, "-> setHorizontalPageCount = " + horizontalPageCount
+                + " -> " + spineItem.href
         )
 
         mWebview!!.setHorizontalPageCount(horizontalPageCount)
@@ -665,10 +665,10 @@ class FolioPageFragment : Fragment(),
 
     fun loadRangy(rangy: String) {
         mWebview!!.loadUrl(
-            String.format(
-                "javascript:if(typeof ssReader !== \"undefined\"){ssReader.setHighlights('%s');}",
-                rangy
-            )
+                String.format(
+                        "javascript:if(typeof ssReader !== \"undefined\"){ssReader.setHighlights('%s');}",
+                        rangy
+                )
         )
     }
 
@@ -683,9 +683,9 @@ class FolioPageFragment : Fragment(),
         mScrollSeekbar = mRootView!!.findViewById<View>(R.id.scrollSeekbar) as VerticalSeekbar
         mScrollSeekbar!!.progressDrawable
             .setColorFilter(
-                resources
-                    .getColor(R.color.default_theme_accent_color),
-                PorterDuff.Mode.SRC_IN
+                    resources
+                            .getColor(R.color.default_theme_accent_color),
+                    PorterDuff.Mode.SRC_IN
             )
     }
 
@@ -724,8 +724,8 @@ class FolioPageFragment : Fragment(),
             else
                 getString(R.string.page_left)
             val pagesRemainingStr = String.format(
-                Locale.US,
-                pagesRemainingStrFormat, pagesRemaining
+                    Locale.US,
+                    pagesRemainingStrFormat, pagesRemaining
             )
 
             val minutesRemaining =
@@ -733,13 +733,13 @@ class FolioPageFragment : Fragment(),
             val minutesRemainingStr: String
             minutesRemainingStr = if (minutesRemaining > 1) {
                 String.format(
-                    Locale.US, getString(R.string.minutes_left),
-                    minutesRemaining
+                        Locale.US, getString(R.string.minutes_left),
+                        minutesRemaining
                 )
             } else if (minutesRemaining == 1) {
                 String.format(
-                    Locale.US, getString(R.string.minute_left),
-                    minutesRemaining
+                        Locale.US, getString(R.string.minute_left),
+                        minutesRemaining
                 )
             } else {
                 getString(R.string.less_than_minute)
@@ -825,17 +825,17 @@ class FolioPageFragment : Fragment(),
     fun highlight(style: HighlightImpl.HighlightStyle, isAlreadyCreated: Boolean) {
         if (!isAlreadyCreated) {
             mWebview!!.loadUrl(
-                String.format(
-                    "javascript:if(typeof ssReader !== \"undefined\"){ssReader.highlightSelection('%s');}",
-                    HighlightImpl.HighlightStyle.classForStyle(style)
-                )
+                    String.format(
+                            "javascript:if(typeof ssReader !== \"undefined\"){ssReader.highlightSelection('%s');}",
+                            HighlightImpl.HighlightStyle.classForStyle(style)
+                    )
             )
         } else {
             mWebview!!.loadUrl(
-                String.format(
-                    "javascript:setHighlightStyle('%s')",
-                    HighlightImpl.HighlightStyle.classForStyle(style)
-                )
+                    String.format(
+                            "javascript:setHighlightStyle('%s')",
+                            HighlightImpl.HighlightStyle.classForStyle(style)
+                    )
             )
         }
     }
@@ -849,14 +849,41 @@ class FolioPageFragment : Fragment(),
     @JavascriptInterface
     fun onReceiveHighlights(html: String?) {
         if (html != null) {
-            rangy = HighlightUtil.createHighlightRangy(
-                activity!!.applicationContext,
-                html,
-                mBookId,
-                pageName,
-                spineIndex,
-                rangy
+            var note: String? = null
+            activity!!.runOnUiThread {
+                note = "";
+            }
+            val resultRangy = HighlightUtil.createHighlightRangy(
+                    activity!!.applicationContext,
+                    html,
+                    note,
+                    mBookId,
+                    pageName,
+                    spineIndex,
+                    rangy
             )
+            if (resultRangy != null) {
+                rangy = resultRangy.rangy
+                getNote(resultRangy.note)
+            }
+        }
+    }
+
+    fun getNote(highlightImpl: HighlightImpl) {
+        val dialog = Dialog(requireActivity(), R.style.DialogCustomTheme)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_edit_notes)
+        dialog.show()
+        dialog.findViewById<View>(R.id.btn_save_note).setOnClickListener {
+            val note = (dialog.findViewById<View>(R.id.edit_note) as EditText).text.toString()
+            highlightImpl.note = note
+            if (HighLightTable.updateHighlight(highlightImpl)) {
+                HighlightUtil.sendHighlightBroadcastEvent(
+                        requireActivity().applicationContext,
+                        highlightImpl,
+                        HighLight.HighLightAction.MODIFY)
+            }
+            dialog.dismiss()
         }
     }
 
@@ -874,9 +901,9 @@ class FolioPageFragment : Fragment(),
             val highlightImpl = HighLightTable.updateHighlightStyle(id, style)
             if (highlightImpl != null) {
                 HighlightUtil.sendHighlightBroadcastEvent(
-                    activity!!.applicationContext,
-                    highlightImpl,
-                    HighLight.HighLightAction.MODIFY
+                        activity!!.applicationContext,
+                        highlightImpl,
+                        HighLight.HighLightAction.MODIFY
                 )
             }
             val rangyString = HighlightUtil.generateRangyString(pageName)
@@ -923,8 +950,8 @@ class FolioPageFragment : Fragment(),
         if (loadingView != null && loadingView!!.visibility != View.VISIBLE) {
             loadingView!!.show()
             val callHighlightSearchLocator = String.format(
-                getString(R.string.callHighlightSearchLocator),
-                searchLocatorVisible?.locations?.cfi
+                    getString(R.string.callHighlightSearchLocator),
+                    searchLocatorVisible?.locations?.cfi
             )
             mWebview!!.loadUrl(callHighlightSearchLocator)
         }

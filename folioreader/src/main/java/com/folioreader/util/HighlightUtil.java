@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.folioreader.model.HighLight;
+import com.folioreader.model.HighLightInsert;
 import com.folioreader.model.HighlightImpl;
 import com.folioreader.model.sqlite.HighLightTable;
 
@@ -26,12 +27,13 @@ public class HighlightUtil {
 
     private static final String TAG = "HighlightUtil";
 
-    public static String createHighlightRangy(Context context,
-                                              String content,
-                                              String bookId,
-                                              String pageId,
-                                              int pageNo,
-                                              String oldRangy) {
+    public static HighLightInsert createHighlightRangy(Context context,
+                                                       String content,
+                                                       String note,
+                                                       String bookId,
+                                                       String pageId,
+                                                       int pageNo,
+                                                       String oldRangy) {
         try {
             JSONObject jObject = new JSONObject(content);
 
@@ -43,6 +45,7 @@ public class HighlightUtil {
 
             HighlightImpl highlightImpl = new HighlightImpl();
             highlightImpl.setContent(textContent);
+            highlightImpl.setNote(note);
             highlightImpl.setType(color);
             highlightImpl.setPageNumber(pageNo);
             highlightImpl.setBookId(bookId);
@@ -55,11 +58,11 @@ public class HighlightUtil {
                 highlightImpl.setId((int) id);
                 sendHighlightBroadcastEvent(context, highlightImpl, HighLight.HighLightAction.NEW);
             }
-            return rangy;
+            return new HighLightInsert(highlightImpl, rangy);
         } catch (JSONException e) {
             Log.e(TAG, "createHighlightRangy failed", e);
         }
-        return "";
+        return null;
     }
 
     /**
