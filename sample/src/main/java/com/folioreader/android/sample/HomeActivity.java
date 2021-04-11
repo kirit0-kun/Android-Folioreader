@@ -71,6 +71,7 @@ public class HomeActivity extends AppCompatActivity
                 if (config == null)
                     config = new Config();
                 config.setAllowedDirection(Config.AllowedDirection.VERTICAL_AND_HORIZONTAL);
+                config.setShowTts(true);
 
                 folioReader.setConfig(config, true)
                         .openBook(R.raw.accessible_epub_3);
